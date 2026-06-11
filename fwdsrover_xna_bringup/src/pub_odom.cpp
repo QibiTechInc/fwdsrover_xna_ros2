@@ -26,11 +26,13 @@ public:
   PubOdomNode()
   : Node("odometry_publisher")
   {
+    this->declare_parameter<int>("odom_publish_period_ms", 10);
+    int period_ms = this->get_parameter("odom_publish_period_ms").as_int();
+
     publisher_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", rclcpp::QoS(1));
 
-    // publish odometry data and tf transform every 10ms (=100hz)
     timer_ = this->create_wall_timer(
-      10ms, std::bind(&PubOdomNode::timer_callback, this));
+      std::chrono::milliseconds(period_ms), std::bind(&PubOdomNode::timer_callback, this));
 
     subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
       "rover_odo", rclcpp::SensorDataQoS(), std::bind(&PubOdomNode::rover_odom_callback, this, _1));

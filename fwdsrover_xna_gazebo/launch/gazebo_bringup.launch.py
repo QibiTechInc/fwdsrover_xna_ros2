@@ -136,6 +136,7 @@ def _make_world_with_state(context, *args, **kwargs):
 
 def _create_urdf_and_rsp(context, *args, **kwargs):
     rover = LaunchConfiguration("rover").perform(context)
+    ros2_control_plugin = LaunchConfiguration("ros2_control_plugin").perform(context)
 
     urdf_dir = os.path.join(
         get_package_share_directory("fwdsrover_description"),
@@ -159,7 +160,9 @@ def _create_urdf_and_rsp(context, *args, **kwargs):
     os.close(fd)
 
     gen = ExecuteProcess(
-        cmd=[FindExecutable(name="xacro"), xacro_file, "-o", urdf_path],
+        cmd=[FindExecutable(name="xacro"), xacro_file,
+             f"ros2_control_plugin:={ros2_control_plugin}",
+             "-o", urdf_path],
         output="screen",
     )
 
@@ -173,7 +176,8 @@ def _create_urdf_and_rsp(context, *args, **kwargs):
         parameters=[
             {
                 "robot_description": Command(
-                    [FindExecutable(name="xacro"), " ", xacro_file]
+                    [FindExecutable(name="xacro"), " ", xacro_file,
+                     " ros2_control_plugin:=", LaunchConfiguration("ros2_control_plugin")]
                 ),
                 "use_sim_time": True,
             }
@@ -339,6 +343,11 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument("physics", default_value="ode"),
             DeclareLaunchArgument("spawn_z", default_value=""),
+            DeclareLaunchArgument(
+                "ros2_control_plugin",
+                default_value="gazebo_ros2_control/GazeboSystem",
+                description="ros2_control hardware plugin class",
+            ),
             cleanup_stale_gazebo,
             check_no_running_gazebo,
             make_world,

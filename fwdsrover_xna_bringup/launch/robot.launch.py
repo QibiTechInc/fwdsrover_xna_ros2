@@ -36,6 +36,7 @@ def set_configurable_parameters(parameters):
 
 def launch_setup(context, params, param_name_suffix=''):
     rover_type = LaunchConfiguration('rover').perform(context)
+    ros2_control_plugin = LaunchConfiguration('ros2_control_plugin').perform(context)
 
     robot_description_path = os.path.join(
         get_package_share_directory('fwdsrover_description'),
@@ -56,7 +57,8 @@ def launch_setup(context, params, param_name_suffix=''):
             parameters=[
                 {
                     'robot_description': ParameterValue(
-                        Command(['xacro ', robot_description_path]),
+                        Command(['xacro ', robot_description_path,
+                                 ' ros2_control_plugin:=', ros2_control_plugin]),
                         value_type=str,
                     )
                 }
@@ -86,9 +88,14 @@ def generate_launch_description():
     return LaunchDescription(
         declare_configurable_parameters(CONFIGURABLE_PARAMETERS)
         + [
+            DeclareLaunchArgument(
+                'ros2_control_plugin',
+                default_value='mock_components/GenericSystem',
+                description='ros2_control hardware plugin class',
+            ),
             OpaqueFunction(
                 function=launch_setup,
                 kwargs={'params': set_configurable_parameters(CONFIGURABLE_PARAMETERS)},
-            )
+            ),
         ]
     )

@@ -1,3 +1,7 @@
+pub_odom:
+  ros__parameters:
+    odom_publish_period_ms: 10  # odom + TF publish period [ms] (default 10 ms = 100 Hz)
+
 fwdsrover_xna_bringup:
   ros__parameters:
     
